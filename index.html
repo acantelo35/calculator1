@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCAA D1 Baseball Environment Translator</title>
+    <style>
+        :root {
+            --primary: #1d4ed8;
+            --primary-hover: #1e40af;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: #0f172a;
+            margin-bottom: 5px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-top: 0;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--border);
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #475569;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.15);
+        }
+
+        .metrics-display {
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        .metrics-display p {
+            margin: 4px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .metrics-display span {
+            font-weight: 600;
+        }
+
+        button {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .results-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 18px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .results-box h3 {
+            margin-top: 0;
+            color: #1e40af;
+            border-bottom: 1px solid #bfdbfe;
+            padding-bottom: 6px;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dbeafe;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: #1d4ed8;
+            font-size: 1.05rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>D1 Environment Translation Calculator</h1>
+        <p class="subtitle">Complete Division 1 School & Conference Interactive Database</p>
+    </header>
+
+    <div class="card">
+        <div class="grid">
+            <div>
+                <div class="section-title">Current / Old Setting</div>
+                <div class="form-group">
+                    <label for="old-conf">Conference</label>
+                    <select id="old-conf" onchange="updateTeams('old')">
+                        <option value="">Select Conference</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="old-team">School / Team</label>
+                    <select id="old-team" onchange="showMetrics('old')">
+                        <option value="">Select Team</option>
+                    </select>
+                </div>
+                <div class="metrics-display">
+                    <p>UCR (Unified Rating): <span id="lbl-old-ucr">-</span></p>
+                    <p>Park Factor (PF): <span id="lbl-old-pf">-</span></p>
+                </div>
+            </div>
+
+            <div>
+                <div class="section-title">Target / New Setting</div>
+                <div class="form-group">
+                    <label for="new-conf">Conference</label>
+                    <select id="new-conf" onchange="updateTeams('new')">
+                        <option value="">Select Conference</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new-team">School / Team</label>
+                    <select id="new-team" onchange="showMetrics('new')">
+                        <option value="">Select Team</option>
+                    </select>
+                </div>
+                <div class="metrics-display">
+                    <p>UCR (Unified Rating): <span id="lbl-new-ucr">-</span></p>
+                    <p>Park Factor (PF): <span id="lbl-new-pf">-</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section-title">Input Performance Statistics</div>
+        <div class="grid">
+            <div class="form-group">
+                <label for="input-era">Current ERA</label>
+                <input type="number" id="input-era" step="0.01" placeholder="e.g. 3.75">
+            </div>
+            <div class="form-group">
+                <label for="input-stat">Current Counting Stat (e.g. HR, SO, Hits)</label>
+                <input type="number" id="input-stat" step="1" placeholder="e.g. 14">
+            </div>
+        </div>
+        
+        <button onclick="calculateTranslations()">Calculate Translation Metrics</button>
+
+        <div class="results-box" id="results-panel">
+            <h3>Translated Performance Results</h3>
+            <div class="result-item">
+                <span>Conference Translation Ratio (CTR):</span>
+                <span class="result-value" id="res-ctr">-</span>
+            </div>
+            <div class="result-item">
+                <span>Playing Environment Ratio (PR):</span>
+                <span class="result-value" id="res-pr">-</span>
+            </div>
+            <div class="result-item">
+                <span>Expected ERA in New Setting:</span>
+                <span class="result-value" id="res-exp-era">-</span>
+            </div>
+            <div class="result-item">
+                <span>Expected Counting Stat in New Setting:</span>
+                <span class="result-value" id="res-exp-stat">-</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Complete Compiled Division 1 Database Mapping (All Conferences + All Teams & Respective Park Factors)
+const database = {
+  "ASUN": {
+    "UCR": 0.449688,
+    "teams": {
+      "Austin Peay State University": 1.14,
+      "Bellarmine University": 1.15,
+      "Central Arkansas": 0.94,
+      "Eastern Kentucky University": 1.14,
+      "Florida Gulf Coast University": 1.09,
+      "Jacksonville University": 0.94,
+      "Lipscomb University": 1.08,
+      "Queens University of Charlotte": 1.12,
+      "Stetson University": 0.97,
+      "University of North Alabama": 1.07,
+      "University of North Florida": 1.00,
+      "Eastern Kentucky": 1.14,
+      "North Alabama": 1.07
+    }
+  },
+  "Atlantic 10": {
+    "UCR": 0.528430,
+    "teams": {
+      "Davidson College": 1.12,
+      "Dayton": 1.10,
+      "George Mason University": 0.98,
+      "George Washington University": 0.97,
+      "Fordham University": 0.94,
+      "Rhode Island": 1.05,
+      "Richmond": 1.07,
+      "Saint Joseph's University": 1.12,
+      "Saint Louis": 0.83,
+      "St. Bonaventure University": 1.01,
+      "University of Dayton": 1.10,
+      "University of Massachusetts Amherst": 0.96,
+      "Virginia Commonwealth University": 0.90
+    }
+  },
+  "ACC": {
+    "UCR": 0.802062,
+    "teams": {
+      "Boston College": 0.95,
+      "Clemson University": 1.04,
+      "Duke University": 0.96,
+      "Florida State University": 1.06,
+      "Georgia Institute of Technology": 1.15,
+      "North Carolina State University": 1.04,
+      "University of Louisville": 1.03,
+      "University of Miami": 1.02,
+      "University of North Carolina at Chapel Hill": 1.03,
+      "University of Notre Dame": 0.99,
+      "University of Pittsburgh": 1.03,
+      "University of Virginia": 1.10,
+      "Virginia Polytechnic Institute and State University": 1.14,
+      "Wake Forest University": 0.98
+    }
+  },
+  "America East": {
+    "UCR": 0.444738,
+    "teams": {
+      "Bryant University": 1.03,
+      "Binghamton University": 0.94,
+      "New Jersey Institute of Technology": 1.04,
+      "University of Albany": 1.02,
+      "University of Maine": 1.07,
+      "University of Maryland, Baltimore County": 1.12,
+      "University of Massachusetts Lowell": 0.98
+    }
+  },
+  "American Athletic": {
+    "UCR": 0.733214,
+    "teams": {
+      "East Carolina University": 0.96,
+      "Florida Atlantic University": 0.99,
+      "Memphis": 1.02,
+      "Rice University": 0.91,
+      "Tulane University": 0.98,
+      "University of Alabama at Birmingham": 0.91,
+      "University of Charlotte": 1.04,
+      "University of Memphis": 1.02,
+      "University of South Florida": 1.01,
+      "University of Texas at San Antonio": 1.12,
+      "Wichita State University": 0.98
+    }
+  },
+  "Big 12": {
+    "UCR": 0.807310,
+    "teams": {
+      "Baylor University": 0.94,
+      "Brigham Young University": 1.15,
+      "Kansas State University": 1.09,
+      "Oklahoma State University": 1.07,
+      "Texas Christian University": 0.96,
+      "Texas Tech University": 1.18,
+      "University of Cincinnati": 1.09,
+      "University of Houston": 0.93,
+      "University of Kansas": 1.04,
+      "University of Oklahoma": 1.08,
+      "University of Texas at Austin": 0.93,
+      "West Virginia University": 1.01,
+      "University of Central Florida": 0.99
+    }
+  },
+  "Big East": {
+    "UCR": 0.480564,
+    "teams": {
+      "Butler University": 1.10,
+      "Creighton University": 0.84,
+      "Creighton": 0.84,
+      "Georgetown University": 1.12,
+      "Seton Hall University": 0.92,
+      "St. John's University": 0.94,
+      "University of Connecticut": 0.94,
+      "Villanova University": 0.98,
+      "Xavier University": 1.10
+    }
+  },
+  "Big South": {
+    "UCR": 0.424836,
+    "teams": {
+      "Charleston Southern University": 0.93,
+      "Gardner-Webb University": 1.06,
+      "High Point University": 1.06,
+      "Longwood University": 0.94,
+      "Presbyterian College": 1.00,
+      "Radford University": 1.05,
+      "University of North Carolina Asheville": 1.13,
+      "USC Upstate": 1.08,
+      "Winthrop University": 0.95
+    }
+  },
+  "Big Ten": {
+    "UCR": 0.719749,
+    "teams": {
+      "Indiana University Bloomington": 1.05,
+      "Michigan State University": 0.97,
+      "Northwestern University": 1.01,
+      "Ohio State University": 0.98,
+      "Pennsylvania State University": 1.04,
+      "Purdue University": 0.96,
+      "Rutgers University–New Brunswick": 1.05,
+      "University of Illinois Urbana-Champaign": 1.05,
+      "University of Iowa": 1.04,
+      "University of Maryland, College Park": 1.09,
+      "University of Michigan": 0.97,
+      "University of Minnesota": 0.95,
+      "University of Nebraska-Lincoln": 0.97
+    }
+  },
+  "Big West": {
+    "UCR": 0.584346,
+    "teams": {
+      "California Polytechnic State University": 0.90,
+      "California State University, Bakersfield": 0.88,
+      "California State University, Fullerton": 0.87,
+      "California State University, Northridge": 1.32,
+      "Long Beach State University": 0.86,
+      "University of California, Davis": 0.94,
+      "University of California, Irvine": 0.94,
+      "University of California, Riverside": 1.02,
+      "University of California, San Diego": 0.91,
+      "University of California, Santa Barbara": 0.92,
+      "University of Hawaii at Manoa": 0.87
+    }
+  },
+  "CAA": {
+    "UCR": 0.378207,
+    "teams": {
+      "Campbell University": 1.14,
+      "College of Charleston": 1.01,
+      "Elon University": 1.00,
+      "Hofstra University": 1.09,
+      "Monmouth University": 0.96,
+      "Northeastern University": 0.99,
+      "Stony Brook University": 0.97,
+      "Towson University": 1.06,
+      "University of Delaware": 1.15,
+      "University of North Carolina Wilmington": 1.01,
+      "William & Mary": 1.01
+    }
+  },
+  "Conference USA": {
+    "UCR": 0.597541,
+    "teams": {
+      "Dallas Baptist University": 1.06,
+      "Florida International University": 1.05,
+      "Jacksonville State University": 1.12,
+      "Liberty University": 0.96,
+      "Louisiana Tech University": 1.03,
+      "Middle Tennessee State University": 1.06,
+      "New Mexico State University": 1.25,
+      "Sam Houston State University": 0.97,
+      "Western Kentucky University": 1.03
+    }
+  },
+  "Horizon League": {
+    "UCR": 0.472719,
+    "teams": {
+      "Milwaukee": 0.97,
+      "Northern Kentucky University": 1.15,
+      "Oakland University": 1.10,
+      "Purdue University Fort Wayne": 1.11,
+      "University of Milwaukee": 0.97,
+      "Wright State University": 1.18,
+      "Youngstown State University": 1.05
+    }
+  },
+  "Ivy League": {
+    "UCR": 0.569429,
+    "teams": {
+      "Brown University": 0.99,
+      "Columbia University": 1.30,
+      "Columbia": 1.30,
+      "Cornell University": 1.09,
+      "Dartmouth College": 1.04,
+      "Harvard University": 1.00,
+      "Princeton University": 1.03,
+      "University of Pennsylvania": 1.05,
+      "Yale University": 0.95
+    }
+  },
+  "MAAC": {
+    "UCR": 0.490715,
+    "teams": {
+      "Canisius University": 1.07,
+      "Fairfield University": 1.17,
+      "Iona University": 1.09,
+      "Manhattan College": 1.06,
+      "Marist College": 1.12,
+      "Mount St. Mary's University": 1.07,
+      "Niagara University": 1.09,
+      "Quinnipiac University": 1.13,
+      "Rider University": 1.02,
+      "Siena College": 1.01,
+      "Saint Peter's University": 1.07
+    }
+  },
+  "MAC": {
+    "UCR": 0.531238,
+    "teams": {
+      "Ball State University": 1.08,
+      "Bowling Green State University": 1.13,
+      "Central Michigan University": 0.94,
+      "Eastern Michigan University": 1.09,
+      "Kent State University": 1.10,
+      "Miami University": 1.07,
+      "Northern Illinois University": 0.97,
+      "Ohio University": 1.13,
+      "University of Akron": 0.94,
+      "University of Toledo": 1.06,
+      "Western Michigan University": 1.07
+    }
+  },
+  "MEAC": {
+    "UCR": 0.170425,
+    "teams": {
+      "Coppin State University": 1.05,
+      "Delaware State University": 1.11,
+      "Norfolk State University": 0.83,
+      "University of Maryland Eastern Shore": 0.96
+    }
+  },
+  "Missouri Valley": {
+    "UCR": 0.697529,
+    "teams": {
+      "Belmont University": 1.04,
+      "Bradley University": 0.98,
+      "Illinois State University": 0.84,
+      "Indiana State University": 1.00,
+      "Missouri State University": 1.11,
+      "Southern Illinois University Carbondale": 1.02,
+      "University of Evansville": 1.01,
+      "University of Illinois Chicago": 0.84,
+      "Valparaiso University": 1.04,
+      "Murray State University": 1.14
+    }
+  },
+  "Mountain West": {
+    "UCR": 0.601550,
+    "teams": {
+      "California State University, Fresno": 0.94,
+      "San Diego State University": 0.84,
+      "San Jose State University": 0.96,
+      "University of Nevada, Las Vegas": 1.16,
+      "University of Nevada, Reno": 1.35,
+      "Nevada": 1.35,
+      "University of New Mexico": 1.34,
+      "New Mexico": 1.34,
+      "United States Air Force Academy": 1.45,
+      "Air Force": 1.45
+    }
+  },
+  "NEC": {
+    "UCR": 0.154839,
+    "teams": {
+      "Central Connecticut State University": 1.00,
+      "Fairleigh Dickinson University": 1.16,
+      "Long Island University": 1.02,
+      "Merrimack College": 0.95,
+      "Sacred Heart University": 0.96,
+      "Stonehill College": 0.94,
+      "Wagner College": 1.01,
+      "Le Moyne College": 0.92,
+      "Delaware State University": 1.11,
+      "Maryland Eastern Shore": 0.96,
+      "Norfolk State": 0.83,
+      "Coppin State": 1.05
+    }
+  },
+  "Ohio Valley": {
+    "UCR": 0.449622,
+    "teams": {
+      "Eastern Illinois University": 1.08,
+      "Lindenwood University": 0.99,
+      "Little Rock": 0.94,
+      "Morehead State University": 1.42,
+      "Morehead": 1.42,
+      "Southeast Missouri State University": 1.17,
+      "Southern Illinois University Edwardsville": 1.12,
+      "Tennessee Technological University": 1.21,
+      "University of Arkansas at Little Rock": 0.94,
+      "University of Tennessee at Martin": 1.14,
+      "Western Illinois University": 1.01
+    }
+  },
+  "Pac-12": {
+    "UCR": 0.672322,
+    "teams": {
+      "Arizona State University": 1.14,
+      "Oregon State University": 0.94,
+      "Stanford University": 0.94,
+      "University of Arizona": 1.15,
+      "University of California, Berkeley": 0.99,
+      "University of Oregon": 0.94,
+      "University of Southern California": 0.89,
+      "University of Utah": 1.17,
+      "University of Washington": 0.93,
+      "Washington State University": 0.99,
+      "UCLA": 0.89
+    }
+  },
+  "Patriot League": {
+    "UCR": 0.468241,
+    "teams": {
+      "Bucknell University": 1.06,
+      "Holy Cross": 0.99,
+      "Lafayette College": 1.05,
+      "Lehigh University": 1.11,
+      "United States Military Academy": 1.01,
+      "United States Naval Academy": 0.90
+    }
+  },
+  "SEC": {
+    "UCR": 0.852004,
+    "teams": {
+      "Auburn University": 1.05,
+      "Louisiana State University": 1.05,
+      "Mississippi State University": 1.02,
+      "Texas A&M University": 1.02,
+      "University of Alabama": 1.06,
+      "University of Arkansas": 0.95,
+      "University of Florida": 1.08,
+      "University of Georgia": 1.13,
+      "University of Kentucky": 1.00,
+      "University of Mississippi": 1.05,
+      "University of Missouri": 0.97,
+      "University of South Carolina": 1.04,
+      "University of Tennessee": 1.12,
+      "Vanderbilt University": 0.92
+    }
+  },
+  "Southern": {
+    "UCR": 0.612140,
+    "teams": {
+      "East Tennessee State University": 1.15,
+      "Mercer University": 1.08,
+      "Samford University": 1.13,
+      "The Citadel": 0.96,
+      "University of North Carolina at Greensboro": 1.02,
+      "VMI": 1.16,
+      "Western Carolina University": 1.30,
+      "Wofford College": 1.07
+    }
+  },
+  "Southland": {
+    "UCR": 0.509741,
+    "teams": {
+      "Houston Christian University": 1.02,
+      "Lamar University": 0.92,
+      "McNeese State University": 0.92,
+      "Nicholls State University": 0.89,
+      "Northwestern State University": 0.93,
+      "Southeastern Louisiana University": 0.92,
+      "Texas A&M University–Corpus Christi": 0.95,
+      "University of New Orleans": 1.05,
+      "Incarnate Word": 1.11
+    }
+  },
+  "Summit League": {
+    "UCR": 0.490710,
+    "teams": {
+      "North Dakota State University": 1.01,
+      "Oral Roberts University": 1.00,
+      "South Dakota State University": 1.08,
+      "University of Northern Colorado": 1.14,
+      "University of Omaha": 0.93,
+      "St. Thomas": 0.92
+    }
+  },
+  "Sun Belt": {
+    "UCR": 0.695310,
+    "teams": {
+      "Appalachian State University": 1.35,
+      "Arkansas State University": 1.05,
+      "Coastal Carolina University": 1.13,
+      "Georgia Southern University": 0.96,
+      "Georgia State University": 1.14,
+      "James Madison University": 1.16,
+      "Louisiana State University at Alexandria": 0.98,
+      "Marshall University": 0.96,
+      "Old Dominion University": 0.98,
+      "Texas State University": 1.00,
+      "Troy University": 1.07,
+      "University of South Alabama": 0.95,
+      "University of Southern Mississippi": 0.95,
+      "University of Louisiana at Lafayette": 0.98,
+      "University of Louisiana at Monroe": 0.98
+    }
+  },
+  "SWAC": {
+    "UCR": 0.198305,
+    "teams": {
+      "Alabama Agricultural and Mechanical University": 1.07,
+      "Alabama State University": 1.08,
+      "Alcorn State University": 1.13,
+      "Bethune–Cookman University": 0.92,
+      "Florida Agricultural and Mechanical University": 1.00,
+      "Grambling State University": 1.09,
+      "Jackson State University": 1.04,
+      "Mississippi Valley State University": 1.11,
+      "Prairie View A&M University": 1.09,
+      "Southern University and A&M College": 1.04,
+      "Texas Southern University": 1.03,
+      "University of Arkansas at Pine Bluff": 1.05
+    }
+  },
+  "WAC": {
+    "UCR": 0.531871,
+    "teams": {
+      "Abilene Christian University": 1.08,
+      "California Baptist University": 1.00,
+      "Grand Canyon University": 1.02,
+      "Seattle University": 0.92,
+      "Tarleton State University": 1.10,
+      "University of Texas Rio Grande Valley": 0.96,
+      "University of Texas at Arlington": 0.84,
+      "Utah Tech University": 1.15,
+      "Utah Valley University": 1.28,
+      "Sacramento State": 0.82
+    }
+  },
+  "WCC": {
+    "UCR": 0.551846,
+    "teams": {
+      "Gonzaga University": 0.96,
+      "Loyola Marymount University": 0.89,
+      "Pepperdine University": 0.96,
+      "Saint Mary's College of California": 0.94,
+      "Santa Clara University": 0.93,
+      "University of Portland": 0.96,
+      "University of San Diego": 0.95,
+      "University of San Francisco": 0.93,
+      "University of the Pacific": 1.01
+    }
+  }
+};
+
+// Populate the master select configuration dropboxes when the app initializes
+function init() {
+    const oldConfSelect = document.getElementById('old-conf');
+    const newConfSelect = document.getElementById('new-conf');
+    
+    // Extract conferences, sort alphabetically
+    const sortedConferences = Object.keys(database).sort();
+    
+    sortedConferences.forEach(conf => {
+        let opt1 = document.createElement('option');
+        opt1.value = conf;
+        opt1.textContent = conf;
+        oldConfSelect.appendChild(opt1);
+
+        let opt2 = document.createElement('option');
+        opt2.value = conf;
+        opt2.textContent = conf;
+        newConfSelect.appendChild(opt2);
+    });
+}
+
+// Dependent Dropdown Trigger: Fires when user selects/alters a conference
+function updateTeams(type) {
+    const confSelect = document.getElementById(`${type}-conf`);
+    const teamSelect = document.getElementById(`${type}-team`);
+    const selectedConf = confSelect.value;
+    
+    // Clear out preexisting items
+    teamSelect.innerHTML = '<option value="">Select Team</option>';
+    
+    // Reset informational text blocks
+    document.getElementById(`lbl-${type}-ucr`).textContent = "-";
+    document.getElementById(`lbl-${type}-pf`).textContent = "-";
+
+    if (selectedConf && database[selectedConf]) {
+        // Show UCR score
+        const confUcr = database[selectedConf].UCR;
+        document.getElementById(`lbl-${type}-ucr`).textContent = confUcr.toFixed(6);
+        
+        // Extract and alphabetize schools inside this specific conference
+        const sortedTeams = Object.keys(database[selectedConf].teams).sort();
+        
+        sortedTeams.forEach(team => {
+            let opt = document.createElement('option');
+            opt.value = team;
+            opt.textContent = team;
+            teamSelect.appendChild(opt);
+        });
+    }
+}
+
+// Display selected school-specific metrics
+function showMetrics(type) {
+    const confSelect = document.getElementById(`${type}-conf`).value;
+    const teamSelect = document.getElementById(`${type}-team`).value;
+    
+    if (confSelect && teamSelect) {
+        const pf = database[confSelect].teams[teamSelect];
+        document.getElementById(`lbl-${type}-pf`).textContent = pf.toFixed(2);
+    } else {
+        document.getElementById(`lbl-${type}-pf`).textContent = "-";
+    }
+}
+
+// Execute core translation equations
+function calculateTranslations() {
+    const oldConf = document.getElementById('old-conf').value;
+    const oldTeam = document.getElementById('old-team').value;
+    const newConf = document.getElementById('new-conf').value;
+    const newTeam = document.getElementById('new-team').value;
+
+    if (!oldConf || !oldTeam || !newConf || !newTeam) {
+        alert("Please select both Old and New Conferences and Teams before running calculations.");
+        return;
+    }
+
+    // Extraction values
+    const ucrOld = database[oldConf].UCR;
+    const pfOld = database[oldConf].teams[oldTeam];
+    const ucrNew = database[newConf].UCR;
+    const pfNew = database[newConf].teams[newTeam];
+
+    // Requested Formulas Implementation
+    const ctr = ucrOld / ucrNew;
+    const pr = pfNew / pfOld;
+
+    document.getElementById('res-ctr').textContent = ctr.toFixed(4);
+    document.getElementById('res-pr').textContent = pr.toFixed(4);
+
+    // Expected Rate Stat: Expected (ERA) = current ERA * UCR new / UCR old * PF new / PF old
+    const inputEra = parseFloat(document.getElementById('input-era').value);
+    if (!isNaN(inputEra)) {
+        const expectedEra = inputEra * (ucrNew / ucrOld) * (pfNew / pfOld);
+        document.getElementById('res-exp-era').textContent = expectedEra.toFixed(2);
+    } else {
+        document.getElementById('res-exp-era').textContent = "N/A (No Input Provided)";
+    }
+
+    // Expected Counting Stat: Expected stat = current stat * UCR old / UCR new * PF new / PF old
+    const inputStat = parseFloat(document.getElementById('input-stat').value);
+    if (!isNaN(inputStat)) {
+        const expectedStat = inputStat * (ucrOld / ucrNew) * (pfNew / pfOld);
+        document.getElementById('res-exp-stat').textContent = expectedStat.toFixed(1);
+    } else {
+        document.getElementById('res-exp-stat').textContent = "N/A (No Input Provided)";
+    }
+
+    // Make the panel display visible
+    document.getElementById('results-panel').style.display = 'block';
+}
+
+// Run initialize routine on page loading sequence completion
+window.onload = init;
+</script>
+
+</body>
+</html>
