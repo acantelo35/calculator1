@@ -227,8 +227,8 @@
         <div class="section-title">Input Performance Statistics</div>
         <div class="grid">
             <div class="form-group">
-                <label for="input-era">Current ERA</label>
-                <input type="number" id="input-era" step="0.01" placeholder="e.g. 3.75">
+                <label for="input-era">Current rate stat (ex ERA, OPS, average)</label>
+                <input type="number" id="input-era" step="0.001" placeholder="e.g. 3.75 or 0.845">
             </div>
             <div class="form-group">
                 <label for="input-stat">Current Counting Stat (e.g. HR, SO, Hits)</label>
@@ -249,7 +249,7 @@
                 <span class="result-value" id="res-pr">-</span>
             </div>
             <div class="result-item">
-                <span>Expected ERA in New Setting:</span>
+                <span>Expected Rate Stat in New Setting:</span>
                 <span class="result-value" id="res-exp-era">-</span>
             </div>
             <div class="result-item">
@@ -261,7 +261,7 @@
 </div>
 
 <script>
-// Complete Compiled Division 1 Database Mapping (All Conferences + All Teams & Respective Park Factors)
+// Complete Cleaned Division 1 Database Mapping (Duplicates & Multi-names removed)
 const database = {
   "ASUN": {
     "UCR": 0.449688,
@@ -276,16 +276,13 @@ const database = {
       "Queens University of Charlotte": 1.12,
       "Stetson University": 0.97,
       "University of North Alabama": 1.07,
-      "University of North Florida": 1.00,
-      "Eastern Kentucky": 1.14,
-      "North Alabama": 1.07
+      "University of North Florida": 1.00
     }
   },
   "Atlantic 10": {
     "UCR": 0.528430,
     "teams": {
       "Davidson College": 1.12,
-      "Dayton": 1.10,
       "George Mason University": 0.98,
       "George Washington University": 0.97,
       "Fordham University": 0.94,
@@ -335,7 +332,6 @@ const database = {
     "teams": {
       "East Carolina University": 0.96,
       "Florida Atlantic University": 0.99,
-      "Memphis": 1.02,
       "Rice University": 0.91,
       "Tulane University": 0.98,
       "University of Alabama at Birmingham": 0.91,
@@ -369,7 +365,6 @@ const database = {
     "teams": {
       "Butler University": 1.10,
       "Creighton University": 0.84,
-      "Creighton": 0.84,
       "Georgetown University": 1.12,
       "Seton Hall University": 0.92,
       "St. John's University": 0.94,
@@ -459,7 +454,6 @@ const database = {
   "Horizon League": {
     "UCR": 0.472719,
     "teams": {
-      "Milwaukee": 0.97,
       "Northern Kentucky University": 1.15,
       "Oakland University": 1.10,
       "Purdue University Fort Wayne": 1.11,
@@ -473,7 +467,6 @@ const database = {
     "teams": {
       "Brown University": 0.99,
       "Columbia University": 1.30,
-      "Columbia": 1.30,
       "Cornell University": 1.09,
       "Dartmouth College": 1.04,
       "Harvard University": 1.00,
@@ -546,11 +539,8 @@ const database = {
       "San Jose State University": 0.96,
       "University of Nevada, Las Vegas": 1.16,
       "University of Nevada, Reno": 1.35,
-      "Nevada": 1.35,
       "University of New Mexico": 1.34,
-      "New Mexico": 1.34,
-      "United States Air Force Academy": 1.45,
-      "Air Force": 1.45
+      "United States Air Force Academy": 1.45
     }
   },
   "NEC": {
@@ -563,11 +553,7 @@ const database = {
       "Sacred Heart University": 0.96,
       "Stonehill College": 0.94,
       "Wagner College": 1.01,
-      "Le Moyne College": 0.92,
-      "Delaware State University": 1.11,
-      "Maryland Eastern Shore": 0.96,
-      "Norfolk State": 0.83,
-      "Coppin State": 1.05
+      "Le Moyne College": 0.92
     }
   },
   "Ohio Valley": {
@@ -575,9 +561,7 @@ const database = {
     "teams": {
       "Eastern Illinois University": 1.08,
       "Lindenwood University": 0.99,
-      "Little Rock": 0.94,
       "Morehead State University": 1.42,
-      "Morehead": 1.42,
       "Southeast Missouri State University": 1.17,
       "Southern Illinois University Edwardsville": 1.12,
       "Tennessee Technological University": 1.21,
@@ -640,7 +624,7 @@ const database = {
       "Samford University": 1.13,
       "The Citadel": 0.96,
       "University of North Carolina at Greensboro": 1.02,
-      "VMI": 1.16,
+      "VMI (Virginia Military Institute)": 1.16,
       "Western Carolina University": 1.30,
       "Wofford College": 1.07
     }
@@ -679,7 +663,6 @@ const database = {
       "Georgia Southern University": 0.96,
       "Georgia State University": 1.14,
       "James Madison University": 1.16,
-      "Louisiana State University at Alexandria": 0.98,
       "Marshall University": 0.96,
       "Old Dominion University": 0.98,
       "Texas State University": 1.00,
@@ -719,7 +702,7 @@ const database = {
       "University of Texas at Arlington": 0.84,
       "Utah Tech University": 1.15,
       "Utah Valley University": 1.28,
-      "Sacramento State": 0.82
+      "Sacramento State University": 0.82
     }
   },
   "WCC": {
@@ -738,58 +721,44 @@ const database = {
   }
 };
 
-// Populate the master select configuration dropboxes when the app initializes
 function init() {
     const oldConfSelect = document.getElementById('old-conf');
     const newConfSelect = document.getElementById('new-conf');
-    
-    // Extract conferences, sort alphabetically
     const sortedConferences = Object.keys(database).sort();
     
     sortedConferences.forEach(conf => {
         let opt1 = document.createElement('option');
-        opt1.value = conf;
-        opt1.textContent = conf;
+        opt1.value = conf; opt1.textContent = conf;
         oldConfSelect.appendChild(opt1);
 
         let opt2 = document.createElement('option');
-        opt2.value = conf;
-        opt2.textContent = conf;
+        opt2.value = conf; opt2.textContent = conf;
         newConfSelect.appendChild(opt2);
     });
 }
 
-// Dependent Dropdown Trigger: Fires when user selects/alters a conference
 function updateTeams(type) {
     const confSelect = document.getElementById(`${type}-conf`);
     const teamSelect = document.getElementById(`${type}-team`);
     const selectedConf = confSelect.value;
     
-    // Clear out preexisting items
     teamSelect.innerHTML = '<option value="">Select Team</option>';
-    
-    // Reset informational text blocks
     document.getElementById(`lbl-${type}-ucr`).textContent = "-";
     document.getElementById(`lbl-${type}-pf`).textContent = "-";
 
     if (selectedConf && database[selectedConf]) {
-        // Show UCR score
         const confUcr = database[selectedConf].UCR;
         document.getElementById(`lbl-${type}-ucr`).textContent = confUcr.toFixed(6);
         
-        // Extract and alphabetize schools inside this specific conference
         const sortedTeams = Object.keys(database[selectedConf].teams).sort();
-        
         sortedTeams.forEach(team => {
             let opt = document.createElement('option');
-            opt.value = team;
-            opt.textContent = team;
+            opt.value = team; opt.textContent = team;
             teamSelect.appendChild(opt);
         });
     }
 }
 
-// Display selected school-specific metrics
 function showMetrics(type) {
     const confSelect = document.getElementById(`${type}-conf`).value;
     const teamSelect = document.getElementById(`${type}-team`).value;
@@ -802,7 +771,6 @@ function showMetrics(type) {
     }
 }
 
-// Execute core translation equations
 function calculateTranslations() {
     const oldConf = document.getElementById('old-conf').value;
     const oldTeam = document.getElementById('old-team').value;
@@ -810,48 +778,41 @@ function calculateTranslations() {
     const newTeam = document.getElementById('new-team').value;
 
     if (!oldConf || !oldTeam || !newConf || !newTeam) {
-        alert("Please select both Old and New Conferences and Teams before running calculations.");
+        alert("Please select both Old and New Settings before running calculations.");
         return;
     }
 
-    // Extraction values
     const ucrOld = database[oldConf].UCR;
     const pfOld = database[oldConf].teams[oldTeam];
     const ucrNew = database[newConf].UCR;
     const pfNew = database[newConf].teams[newTeam];
 
-    // Requested Formulas Implementation
     const ctr = ucrOld / ucrNew;
     const pr = pfNew / pfOld;
 
     document.getElementById('res-ctr').textContent = ctr.toFixed(4);
     document.getElementById('res-pr').textContent = pr.toFixed(4);
 
-    // Expected Rate Stat: Expected (ERA) = current ERA * UCR new / UCR old * PF new / PF old
     const inputEra = parseFloat(document.getElementById('input-era').value);
     if (!isNaN(inputEra)) {
         const expectedEra = inputEra * (ucrNew / ucrOld) * (pfNew / pfOld);
-        document.getElementById('res-exp-era').textContent = expectedEra.toFixed(2);
+        document.getElementById('res-exp-era').textContent = expectedEra.toFixed(3);
     } else {
-        document.getElementById('res-exp-era').textContent = "N/A (No Input Provided)";
+        document.getElementById('res-exp-era').textContent = "N/A";
     }
 
-    // Expected Counting Stat: Expected stat = current stat * UCR old / UCR new * PF new / PF old
     const inputStat = parseFloat(document.getElementById('input-stat').value);
     if (!isNaN(inputStat)) {
         const expectedStat = inputStat * (ucrOld / ucrNew) * (pfNew / pfOld);
         document.getElementById('res-exp-stat').textContent = expectedStat.toFixed(1);
     } else {
-        document.getElementById('res-exp-stat').textContent = "N/A (No Input Provided)";
+        document.getElementById('res-exp-stat').textContent = "N/A";
     }
 
-    // Make the panel display visible
     document.getElementById('results-panel').style.display = 'block';
 }
 
-// Run initialize routine on page loading sequence completion
 window.onload = init;
 </script>
-
 </body>
 </html>
